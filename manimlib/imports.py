@@ -128,12 +128,12 @@ if __name__ == "__main__":
 
 class MyScene(Scene):
 
-    def add_caption(self, cpt, wait_time=2, anim_run_time=1, *args, **kwargs):
-        cpt = TextMobject(cpt, *args, **kwargs).to_edge(DOWN)
-        # if color_setting_list:
-        #     for color_setting in color_setting_list:
-        #         idx, color = color_setting
-        #         cpt[idx].set_color(color)
+    def add_caption(self, *cpt, wait_time=2, anim_run_time=1, color_setting_list=[], **kwargs):
+        cpt = TextMobject(*cpt, **kwargs).to_edge(DOWN)
+        if color_setting_list:
+            for color_setting in color_setting_list:
+                idx, color = color_setting
+                cpt[idx].set_color(color)
         if hasattr(self, "cpt_mob"):
             self.play(Transform(self.cpt_mob, cpt), run_time=anim_run_time)
         else:
@@ -199,3 +199,27 @@ class Graph(object):
     def line(self, idx1, idx2, **kwargs):
         return Line(self.center(idx1), self.center(idx2), buff=SMALL_BUFF, **kwargs)
 
+
+class ListTex(TexMobject):
+    CONFIG = {}
+
+    def __init__(self, *tex, sep=",", brace="", color_list=[], **kwargs):
+        self.is_braced = True if len(brace) == 2 else False
+        params = []
+        for i in tex:
+            params.append(i)
+            params.append(sep)
+        params.pop()
+
+        if self.is_braced:
+            TexMobject.__init__(self, brace[0], *params, brace[1], **kwargs)
+        else:
+            TexMobject.__init__(self, *params, **kwargs)
+
+        if color_list:
+            for color_setting in color_list:
+                idx, color = color_setting
+                self.idx(idx).set_color(color)
+
+    def idx(self, index):
+        return self.submobjects[2*index + (1 if self.is_braced else 0)]
