@@ -5,9 +5,13 @@ class P01(MyScene):
     """引入全错位排列"""
 
     def construct(self):
-        self.add_caption("在正片开始前，你需要了解关于全错位排列的知识")
-        self.add_caption("如果你已经了解，请跳转到**-**")
-        self.add_caption("接下来是定义与推导")
+        info = TextMobject("在正片开始前，你需要了解关于全错位排列的知识\\\\",
+                           "如果你已经了解，请跳转到**-**\\\\",
+                           "接下来是定义与推导")
+        info.arrange()
+        self.play(ShowCreation(info), run_time=3)
+        self.wait(4)
+        self.play(FadeOutAndShift(info, UP), run_time=1.5)
 
         self.add_caption(r"现有$1\sim n$的自然数")
         one2n = ListTex("1", "2", "3", "\\cdots", "n-1", "n").scale(1.5).shift(UP)
@@ -40,5 +44,10 @@ class P01(MyScene):
         self.add_caption("定义已然明了，我们想知道的问题是：")
         self.add_caption("n个数的全错位排列一共有多少种呢？")
         self.wait(2)
-        self.fade_all_out()
+        self.play(*map(FadeOut, self.mobjects), ApplyMethod(self.cpt_mob.move_to, ORIGIN))
+        sr = SurroundingRectangle(self.cpt_mob, color=YELLOW)
+        self.add(self.cpt_mob)
+        self.play(ShowCreation(sr))
+        self.play(FadeOut(VGroup(sr, self.cpt_mob)))
+
 run("-pl")
