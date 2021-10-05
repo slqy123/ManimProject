@@ -50,4 +50,24 @@ class P01(MyScene):
         self.play(ShowCreation(sr))
         self.play(FadeOut(VGroup(sr, self.cpt_mob)))
 
+
+class P02(MyScene):
+    def construct(self):
+        self.add_caption("我们将用递推公式求解")
+        self.add_caption("设n个数的全错位排列数为$D_n$")
+
+        equation = TexMobject("D_n=", "(n-1)(", "D_{n-1}", "+D_{n-2}", ")")
+        equation[0].set_color(YELLOW)
+        equation.move_to(TOP-0.5)
+
+        dn = TexMobject("D_n").scale(2).set_color(YELLOW)
+        self.play(ShowCreation(dn))
+
+        self.add_caption("我们来讨论其全错位排列的情况")
+        one2n = TexMobject("1", "2", "3", "\\cdots", "n-1", "n").submobjects
+        t_one2n = TexMobject("i_i", "i_2", "i_3", "\\cdots", "i_{n-1}", "i_n").submobjects
+
+        self.wait()
+
+
 run("-pl")
