@@ -988,7 +988,7 @@ class P04(MyScene):  # 论容斥原理的应用----七选五
         self.add_caption("将它与正确答案一一比较")
         self.play(FadeOut(VGroup(underlines, choices[0:2], down_arrow)), chosen_group.shift, UP * 3)
         correct_answer = [1, 5, 3, 2, 0]
-        correct_choices = VGroup(*[choices[correct_answer[i]].copy().set_color(GREEN_E).next_to(
+        correct_choices = VGroup(*[choices[correct_answer[i]].copy().set_color(GREEN).next_to(
             chosen_group[i], DOWN, buff=0.8) for i in range(5)])
         self.play(*map(Write, correct_choices))
 
@@ -1024,15 +1024,321 @@ class P04(MyScene):  # 论容斥原理的应用----七选五
         self.play(Write(possibility))
         self.wait()
 
-        self.play(FadeOut(VGroup(possibility, chosen_group, correct_choices, hline, copyed_title)),
-                  ShrinkToCenter(sfimg))
+        self.add_caption("为了解决这个问题，我们将题目条件进行抽象化")
+        self.play(FadeOut(VGroup(possibility, hline, copyed_title)),
+                  ShrinkToCenter(sfimg), VGroup(chosen_group, correct_choices).move_to, UP)
         self.remove(sfimg)
         self.wait()
 
+        self.add_caption("我们用$1\\sim 7$来代表$A\\sim G$")
+        anims = []
+        for i in range(5):
+            tex_string = chosen_group[i].tex_string
+            num = ord(tex_string) - ord("A") + 1
+            anims.append(Transform(chosen_group[i], TexMobject(str(num), color=BLUE).move_to(chosen_group[i])))
+        for i in range(5):
+            tex_string = correct_choices[i].tex_string
+            num = ord(tex_string) - ord("A") + 1
+            anims.append(Transform(correct_choices[i], TexMobject(str(num), color=GREEN).move_to(correct_choices[i])))
+        self.play(AnimationGroup(*anims, lag_ratio=0.1))
 
-class P05(MyScene):  # 问题的解决
+        self.add_caption("正确答案是什么并不影响，因此不妨就设为$1\\sim 5$")
+        anims = []
+        for i in range(5):
+            anims.append(Transform(correct_choices[i], TexMobject(str(i + 1), color=GREEN).move_to(correct_choices[i])))
+        self.play(AnimationGroup(*anims, lag_ratio=0.1))
+        self.wait()
+
+        self.add_caption("因此这个问题其实就是从$1\\sim 7$的数字中选五个组成一个排列")
+        srd = SurroundingRectangle(chosen_group, color=YELLOW)
+        self.play(ShowCreation(srd))
+        self.wait()
+
+        self.add_caption("要求对应位置的数字不等于其顺序")
+        neq_relation = TexMobject("i_k\\neq k",
+                                  substrings_to_isolate=["i_k", "\\neq", "k"]).set_color_by_tex_to_color_map(
+            {"k": YELLOW, "i": BLUE}
+        ).next_to(correct_choices, DOWN, buff=1)
+        added_description = TextMobject("(其中$i_k$表示该排列的第$k$个位置的数字)", color=GREY).next_to(neq_relation, DOWN)
+        self.play(Write(neq_relation), Write(added_description))
+        self.wait()
+
+        self.add_caption("接下来就介绍如何通过容斥原理解决这个问题")
+        self.fade_all_out()
+        self.wait()
+
+
+class P05(MyScene):  # 七选五的证明
     def construct(self):
-        self.add_caption("我们将题目条件进行抽象化")
+        self.add_caption("全集$U$代表所有可能选项的集合", substrings_to_isolate=["$U$"])
+        self.cpt_mob.set_color_by_tex_to_color_map({"U": BLUE})
+        choicesU = self.cpt_mob[1][0].copy().to_corner(UL, buff=1)
+        self.play(TransformFromCopy(self.cpt_mob[1][0], choicesU), rate_func=linear, run_time=0.7)
+        choicesTex = TexMobject("=", "\\{(i_1, i_2, \\cdots, i_7)\\}").next_to(choicesU, RIGHT)
+        choicesTex[0].set_color(YELLOW)
+        self.play(Write(choicesTex))
+        self.wait()
 
+        self.add_caption("我们用$A_k$来代表第$k$个位置的数字正确的所有选项的集合", substrings_to_isolate=["$A_k$"])
+        self.cpt_mob.set_color_by_tex_to_color_map({"A_k": BLUE})
+        ak = self.cpt_mob[1].copy().next_to(choicesU, DOWN, aligned_edge=LEFT, buff=0.6)
+        self.play(TransformFromCopy(self.cpt_mob[1], ak))
+        akTex = TexMobject("=", "\\{(i_1, i_2, \\cdots, i_7) | i_k=k\\}").next_to(ak, RIGHT)
+        akTex[1][-6:-1].set_color(RED)
+        akTex[0].set_color(YELLOW)
+        self.play(Write(akTex))
+        self.wait()
 
-run("P04 -pl")
+        score_set = TexMobject("A_1\\cup \\cdots \\cup A_7", color=BLUE)
+        score_dsp = TextMobject(":", "所有", "非全错结果").set_color_by_tex_to_color_map(
+            {":": YELLOW, "所有": RED, "全错": RED}).next_to(score_set, RIGHT)
+        scores = VGroup(score_set, score_dsp).next_to(ak, DOWN, aligned_edge=LEFT, buff=0.6)
+        self.add_caption("显然，$A_k$中的选项中至少有一项(第k项)是对的")
+        self.add_caption("于是，考虑这样一个集合")
+        self.play(Write(score_set))
+        self.add_caption("容易看出，其中含有的都是非全错结果")
+        self.play(Write(score_dsp[2]), Write(score_dsp[0]))
+        self.add_caption("问题是：是否包含了全部的非全错结果呢？")
+        qst = TexMobject("?", color=YELLOW).scale(2).move_to(score_dsp[1])
+        srd = SurroundingRectangle(score_dsp[1])
+        self.play(AnimationGroup(Write(score_dsp[1]), ShowCreation(srd), GrowFromCenter(qst)
+                                 , lag_ratio=0.1))
+        self.wait()
+        self.add_caption("用数学语言转述一下就是：")
+        all_lt_00 = TexMobject(
+            "\\forall \\mathrm{Choice}:(i_1, i_2, \\cdots, i_7),\\mathrm{Score}(\\mathrm{Choice})>0",
+            substrings_to_isolate=["\\mathrm{Choice}", "(i_1, i_2, \\cdots, i_7)", "\\forall", "\\mathrm{Score}"])
+        all_lt_01_to = TexMobject("\\Rightarrow").set_color(RED).stretch(2, 0).scale(1.4)
+        all_lt_01_re = TexMobject("\\mathrm{Choice} \\in A_1\\cup \\cdots \\cup A_7",
+                                  substrings_to_isolate=["\\mathrm{Choice}", "(i_1, i_2, \\cdots, i_7)", "\\forall",
+                                                         "A_1\\cup \\cdots \\cup A_7"])
+        all_lt_00.set_color_by_tex_to_color_map(
+            {"\\mathrm{Choice}": BLUE, "(i_1, i_2, \\cdots, i_7)": RED, "\\forall": LIGHT_GREY,
+             "\\mathrm{Score}": LIGHT_BROWN})
+        all_lt_01_re.set_color_by_tex_to_color_map(
+            {"\\mathrm{Choice}": BLUE, "A_1\\cup \\cdots \\cup A_7": YELLOW, "\\in": GREY})
+        all_lt_00.next_to(akTex, DOWN, buff=1.5).move_to(ORIGIN, coor_mask=[1, 0, 0])
+        all_lt_01_to.next_to(all_lt_00, DOWN, aligned_edge=LEFT, buff=1).shift(RIGHT)
+        all_lt_01_re.next_to(all_lt_00, DOWN, aligned_edge=RIGHT, buff=1).shift(0.5 * LEFT)
+        all_lt_qst = TexMobject("?", color=YELLOW).scale(2).move_to(all_lt_01_to)
+        self.play(Write(all_lt_00))
+        self.wait()
+        self.play(AnimationGroup(*map(Write, (all_lt_01_to, all_lt_01_re)), lag_ratio=0.2))
+        self.play(GrowFromCenter(all_lt_qst))
+        self.wait(2)
+
+        all_lt = VGroup(all_lt_00, all_lt_01_to, all_lt_01_re, all_lt_qst)
+        # all_lt.generate_target().scale(0.65).next_to(VGroup(akTex, choicesTex), RIGHT, buff=0.1)
+        # self.play(MoveToTarget(all_lt))
+        self.add_caption("我们从条件$\\mathrm{Score}(\\mathrm{Choice})>0$出发", anim=[ShowPassingFlashAround(all_lt_00[-4:])])
+        self.add_caption("由于不是零分，因此至少能找到一个正确选项", wait_time=2)
+        lt_prf1 = TexMobject("\\mathrm{Score}(\\mathrm{Choice})>0 \\Rightarrow \\exists i_j = j,",
+                             substrings_to_isolate=["\\mathrm{Choice}", "\\mathrm{Score}", "j", "\\Rightarrow",
+                                                    "\\exists"])
+        lt_prf2 = TexMobject("\\text{从而} \\mathrm{Choice} \\in A_j \\subset A_1\\cup \\cdots \\cup A_7",
+                             substrings_to_isolate=[
+                                 "\\mathrm{Choice}", "A_1\\cup \\cdots \\cup A_7", "\\subset", "\\in", "A_j"])
+        lt_prf1.set_color_by_tex_to_color_map(
+            {"\\mathrm{Choice}": BLUE, "j": YELLOW, "Rightarrow": RED, "exists": LIGHT_GREY,
+             "\\mathrm{Score}": LIGHT_BROWN})
+        lt_prf2.set_color_by_tex_to_color_map(
+            {"Choice": LIGHT_BROWN, "A_1\\cup": YELLOW, "subset": LIGHT_GREY, "\\in": LIGHT_GREY, "A_j": YELLOW})
+        lt_prf = VGroup(lt_prf1, lt_prf2).arrange(DOWN, buff=1).next_to(akTex, DOWN, buff=1.5).move_to(
+            ORIGIN, coor_mask=[1, 0, 0])
+        self.play(AnimationGroup(FadeOut(all_lt), Write(lt_prf1), lag_ratio=0.2))
+        self.wait(2)
+        self.add_caption("从而就包含于这个选项对应的集合$A_j$中", wait_time=1)
+        self.play(Write(lt_prf2))
+        self.wait(2)
+
+        self.add_caption("于是我们证明了这确实是所有非全错的选项")
+        self.play(AnimationGroup(FadeOutAndShift(lt_prf, DOWN), FadeIn(all_lt)))
+        self.wait()
+        self.play(Uncreate(all_lt_qst), run_time=0.5)
+        self.wait()
+        self.play(AnimationGroup(FadeOut(all_lt),
+                                 Uncreate(qst),
+                                 Uncreate(srd), lag_ratio=0.2))
+        self.wait()
+
+        self.add_caption("然后，我们用全集$U$一减，就得到了全错的选项")
+        zero = TexMobject("U \\setminus (A_1\\cup \\cdots \\cup A_7)",
+                          substrings_to_isolate=["U", "\\setminus", "A_1\\cup \\cdots \\cup A_7"])
+        zero.set_color_by_tex_to_color_map({
+            "U": BLUE,
+            "setminus": LIGHT_GREY,
+            "A_1\\cup": BLUE,
+            ":": YELLOW})
+        zeroText = TextMobject(":", "所有全错的选项", color=RED)
+        zeroText[0].set_color(YELLOW)
+        zeros = VGroup(zero, zeroText).arrange(RIGHT).next_to(scores, DOWN, aligned_edge=LEFT, buff=0.6)
+        self.play(Write(zeros))
+        self.wait()
+
+        self.add_caption("进而得到错误选项的个数")
+        number_zero = TexMobject("|U| - |A_1\\cup \\cdots \\cup A_7|",
+                                 substrings_to_isolate=["U", "-", "A_1\\cup \\cdots \\cup A_7"])
+        number_zero.set_color_by_tex_to_color_map({
+            "U": BLUE,
+            "-": LIGHT_GREY,
+            "A_1\\cup": BLUE})
+        number_zeroText = TextMobject(":", "全错的选项个数", color=RED)
+        number_zeroText[0].set_color(YELLOW)
+        number_zeros = VGroup(number_zero, number_zeroText
+                              ).arrange(RIGHT).next_to(zeros, DOWN, aligned_edge=LEFT, buff=0.6)
+        self.play(Write(number_zeros))
+        self.wait()
+
+        solve_srd = SurroundingRectangle(number_zero, color=YELLOW)
+        srd2become = SurroundingRectangle(number_zero[0:3])
+        self.add_caption("结果知道了，这东西咋求呢？", anim=[ShowCreation(solve_srd)])
+        self.wait(2)
+        self.add_caption("先看左边，全集$U$，众所周知，", "$A_7^5$", anim=[Transform(solve_srd, srd2become)])
+        a75 = self.cpt_mob[1].copy().next_to(number_zero[0:3], DOWN, buff=0.4).set_color(YELLOW)
+        self.play(TransformFromCopy(self.cpt_mob[1], a75))
+        self.wait()
+        srd2become2 = SurroundingRectangle(number_zero[4:])
+        qst = TexMobject("?", color=YELLOW).next_to(number_zero[4:], DOWN, buff=0.4)
+        self.add_caption("那右边是多少呢？", anim=[Transform(solve_srd, srd2become2), FadeInFromDown(qst)])
+        # self.add_caption("最终结果就是二者相减")
+        # minus = TexMobject("-", color=RED).move_to_mid(a75, qst)
+        # eq = TexMobject("=").next_to(qst, RIGHT)
+        # result = TexMobject("\\mathrm{Result}", color=BLUE).next_to(eq, RIGHT)
+        # self.play(FadeInFromDown(minus), Write(VGroup(eq, result)))
+        union = TexMobject("|A_1\\cup \\cdots \\cup A_7|", color=BLUE).to_edge(UP)
+        self.play(*map(FadeOut, self.mobjects), TransformFromCopy(number_zero[5], union))
+        tgt_title = VGroup(union.generate_target(), TexMobject("="), TexMobject("?", color=YELLOW)).arrange(
+            RIGHT).move_to(
+            union)
+        self.play(AnimationGroup(
+            FadeInFrom(tgt_title[2], UP),
+            MoveToTarget(union),
+            GrowFromCenter(tgt_title[1]),
+            lag_ratio=0.1,
+        ))
+        self.wait()
+        res = TexMobject("\\left|\\bigcup_{i=1}^{n}A_i\\right|",  # 0
+                         "=",  # 1
+                         "\\sum_{k=1}^{n}",  # 2
+                         "(-1)^{k-1}",  # 3
+                         "\\sum_{1\\le i_1 < \\cdots < i_k \\le n}",  # 4
+                         "|A_{i_1}\\cap \\cdots \\cap A_{i_k}|")  # 5
+        self.add_caption("这部分可以运用容斥原理计算")
+        self.play(ShowCreation(res))
+        self.wait()
+        srd = SurroundingRectangle(res[5])
+        self.add_caption("但这里有一个问题就是，这个交集是多大？", anim=[ShowCreation(srd)])
+        self.wait(2)
+
+        eg_union = res[5].copy()
+        self.play(Uncreate(res), Uncreate(srd), eg_union.move_to, UP * 2)
+        self.add_caption("由对称性，这个值只与$k$的大小有关，而与选取无关")
+        # self.add_caption("因此，我们按照$k$的大小分类讨论")
+        # case = VGroup(TexMobject("k=1"),
+        #               TexMobject("\\vdots"),
+        #               TexMobject("k=n"),
+        #               TexMobject("\\vdots"),
+        #               TexMobject("k=5")
+        #               ).arrange(DOWN).set_color(BLUE)
+        # lbrace = Brace(case, LEFT)
+        # brace_case = VGroup(lbrace, case)
+        # brace_case.next_to(eg_union, RIGHT)
+        # self.play(ShowCreation(brace_case))
+        # self.wait()
+        self.add_caption("因此对于k个集合的交集，不妨就记为：")
+        special_cap = TexMobject("|A_1\\cap A_2\\cap \\cdots \\cap A_k|").shift(UP * 0.8)
+        udarr = TexMobject("\\Leftrightarrow").rotate(PI / 2).set_color(YELLOW).move_to_mid(special_cap, eg_union)
+        self.play(Write(special_cap))
+        self.play(GrowFromCenter(udarr))
+        self.wait()
+        self.add_caption("这个集合里的选项，前k项都是对的")
+        self.add_caption("换句话说，选项的前k项已经固定了（必须为正确答案）")
+        fixed_choice = TexMobject("i_1=1,i_2=2,\\cdots,i_k=k").next_to(special_cap, DOWN).set_color(BLUE)
+        rarr = TexMobject("\\Rightarrow", color=YELLOW).next_to(fixed_choice, LEFT, buff=1)
+        self.play(Write(fixed_choice))
+        self.play(Write(rarr))
+        self.add_caption("因此，留给我们的选择范围也少了")
+        range_down = TextMobject("7选5", "$\\to$", "(7-k)选(5-k)",
+                                 substrings_to_isolate=["k"], color=BLUE
+                                 ).set_color_by_tex_to_color_map({"k": YELLOW, "\\to": WHITE})
+        range_down[1].next_to(fixed_choice, DOWN, buff=1)
+        range_down[0].next_to(range_down[1], LEFT, buff=1)
+        range_down[2:].next_to(range_down[1], RIGHT, buff=1)
+        self.play(Write(range_down[0]))
+        self.play(Write(range_down[1:]))
+        self.wait()
+        self.add_caption("总选项数也就自然变为：")
+        choice_down = TexMobject("A_7^5", "\\to ", "A_{7-k}^{5-k}", color=BLUE
+                                 ).scale(1.25)
+        choice_down[2][3].set_color(YELLOW)
+        choice_down[2][6].set_color(YELLOW)
+        choice_down[1].set_color(WHITE)
+        choice_down[0].next_to(range_down[0], DOWN)
+        choice_down[1].next_to(range_down[1], DOWN).shift(0.2 * DOWN)
+        choice_down[2].next_to(range_down[2:], DOWN)
+        self.play(AnimationGroup(TransformFromCopy(range_down[0], choice_down[0]),
+                                 TransformFromCopy(range_down[2], choice_down[2]), lag_ratio=0.3))
+        self.play(TransformFromCopy(range_down[1], choice_down[1]))
+        self.wait()
+
+        self.add_caption("于是就得到了：")
+        to_transform = VGroup(choice_down, range_down, fixed_choice, special_cap, udarr, rarr)
+        tgt = VGroup(eg_union.generate_target(), TexMobject("=", color=BLUE), choice_down[2].copy()).arrange(
+            RIGHT).move_to(eg_union)
+        self.play(AnimationGroup(
+            Transform(to_transform, tgt[2]),
+            ShowCreation(tgt[1]),
+            MoveToTarget(eg_union),
+            lag_ratio=0.15
+        ))
+        conlu = to_transform
+        self.wait()
+        res = TexMobject("\\left|\\bigcup_{i=1}^{n}A_i\\right|",  # 0
+                         "=",  # 1
+                         "\\sum_{k=1}^{n}",  # 2
+                         "(-1)^{k-1}",  # 3
+                         "\\sum_{1\\le i_1 < \\cdots < i_k \\le n}",  # 4
+                         "|A_{i_1}\\cap \\cdots \\cap A_{i_k}|")  # 5
+        self.add_caption("再回到之前的容斥原理")
+        self.play(ShowCreation(res))
+        self.wait()
+        srd = SurroundingRectangle(res[5])
+        self.add_caption("这一项由之前的结论确定了", anim=[ShowCreation(srd)])
+        self.play(Uncreate(tgt[1]), Uncreate(eg_union), ApplyMethod(conlu.next_to, srd, DOWN, 1))
+        self.wait()
+        self.add_caption("前面的求和一共$C_7^k$项", anim=[TranformSurroundingRectangleTarget(srd, res[4])])
+        cnk = TexMobject("C_7^k", color=BLUE).next_to(srd, DOWN).move_to(conlu, coor_mask=[0, 1, 0])
+        cnk[0][1].set_color(YELLOW)
+        self.play(GrowFromCenter(cnk))
+        self.wait()
+
+        self.add_caption("其它的全部照搬下来", anim=[TranformSurroundingRectangleTarget(srd, res[2:4])])
+        res24 = TexMobject("\\sum_{k=1}^{7}", "(-1)^{k-1}", color=BLUE
+                           ).next_to(res[2:4], DOWN).move_to(cnk, coor_mask=[0, 1, 0])
+        res24[0][2].set_color(YELLOW)
+        res24[1][4].set_color(YELLOW)
+        self.play(TransformFromCopy(res[2:4], res24))
+        self.wait()
+
+        step_res = VGroup(union, tgt_title[1])
+        target_group = VGroup()
+        for mob in [step_res, res24, cnk, conlu]:
+            target_group.add(mob.generate_target())
+        target_group.arrange(RIGHT).move_to(UP)
+        anims = AnimationGroup(*map(MoveToTarget, [step_res, res24, cnk, conlu]), lag_ratio=0.1)
+        self.add_caption("结果算出来")
+        self.play(anims, Uncreate(tgt_title[2]), Uncreate(res), Uncreate(srd))
+        self.wait()
+
+        allfL = TexMobject("U-").next_to(step_res, LEFT)
+        allfR = TexMobject("A_7^5-").next_to(step_res, RIGHT)
+        allfElse = VGroup(res24, cnk, conlu)
+        allfElse.generate_target().next_to(allfR, RIGHT)
+        self.play(FadeInFrom(allfL, UP), GrowFromCenter(allfR), MoveToTarget(allfElse))
+        self.wait()
+        allfTex = TextMobject("全错的选项数", color=BLUE).next_to(step_res[1], LEFT)
+        self.play(ReplacementTransform(VGroup(allfL, step_res[0]), allfTex))
+        self.wait()
+        self.add_caption("你学会了吗？", anim=[ShowCreationThenDestruction(SurroundingRectangle(VGroup(allfTex, allfElse)))])
+        self.wait()
+    run("P05 -pl")
