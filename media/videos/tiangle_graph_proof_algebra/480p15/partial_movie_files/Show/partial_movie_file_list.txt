@@ -1,2 +1,0 @@
-file 'file:D:/ManimProject/media/videos/tiangle_graph_proof_algebra/480p15/partial_movie_files/Show/00000.mp4'
-file 'file:D:/ManimProject/media/videos/tiangle_graph_proof_algebra/480p15/partial_movie_files/Show/00001.mp4'

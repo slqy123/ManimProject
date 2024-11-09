@@ -1,3 +1,0 @@
-file 'file:D:/ManimProject/media/videos/another/1440p60/partial_movie_files/Title/00000.mp4'
-file 'file:D:/ManimProject/media/videos/another/1440p60/partial_movie_files/Title/00001.mp4'
-file 'file:D:/ManimProject/media/videos/another/1440p60/partial_movie_files/Title/00002.mp4'

@@ -521,6 +521,10 @@ class Mobject(Container):
         self.shift((target - point_to_align) * coor_mask)
         return self
 
+    def move_to_mid(self, mob1, mob2, alpha=0.5, **kwargs):
+        point = mob1.get_center()*alpha + mob2.get_center()*(1-alpha)
+        return self.move_to(point, **kwargs)
+
     def replace(self, mobject, dim_to_match=0, stretch=False):
         if not mobject.get_num_points() and not mobject.submobjects:
             raise Warning("Attempting to replace mobject with no points")

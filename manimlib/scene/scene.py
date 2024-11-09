@@ -1154,7 +1154,7 @@ class Scene(Container):
         if self.skip_animations:
             return
         time = self.get_time() + time_offset
-        self.file_writer.add_sound(sound_file, time, gain, **kwargs)
+        return self.file_writer.add_sound(sound_file, time, gain, **kwargs)
 
     def show_frame(self):
         """

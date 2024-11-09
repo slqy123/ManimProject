@@ -287,13 +287,14 @@ class SceneFileWriter(object):
         **kwargs
             This method uses add_audio_segment, so any keyword arguments
             used there can be referenced here.
-
+        add a return of the length of sound
         """
         file_path = get_full_sound_file_path(sound_file)
         new_segment = AudioSegment.from_file(file_path)
         if gain:
             new_segment = new_segment.apply_gain(gain)
         self.add_audio_segment(new_segment, time, **kwargs)
+        return new_segment.duration_seconds/1000
 
     # Writers
     def begin_animation(self, allow_write=False):

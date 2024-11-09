@@ -156,10 +156,10 @@ class GraphScene(Scene):
 
         Parameters
         ----------
-        x : (int,float)
+        x : int,float
             The x value
 
-        y : (int,float)
+        y : int,float
             The y value
         
         Returns

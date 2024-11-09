@@ -207,4 +207,12 @@ class TestSound(MyScene):
         p = Rectangle()
         # self.play(AnimationGroup(ShowCreation(p), run_time=2), run_time=4)
         self.add_caption("啊这", anim=[ShowCreationThenDestruction(VGroup(p, q))],  sound="isuzu.ogg")
-run("TestSound -pl")
+
+class SubString(Scene):
+    def construct(self):
+        a = TexMobject("P(\\mathrm{score}=0)=0", substrings_to_isolate=["score", "P", "0"]).set_color_by_tex_to_color_map(
+            {"P": BLUE, "score": YELLOW, "0": RED}
+        )
+        self.play(ShowCreation(a))
+        self.wait()
+run("SubString -pl")
